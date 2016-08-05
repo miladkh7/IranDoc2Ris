@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
 using System.IO;
+
 namespace IranDoc2Ris
 {
     class Program
@@ -12,10 +13,11 @@ namespace IranDoc2Ris
         static void Main(string[] args)
         {
             Console.SetWindowSize(80, 20);
+            
             do
             {
 
-                UInt16 uintCont = 0;
+                UInt16 uintTotalCont = 0;
                 UInt16 i;
                 string readPath;
                 UInt16 isReadExist = 1;
@@ -88,7 +90,7 @@ namespace IranDoc2Ris
                 string line;
                 while (reader.EndOfStream != true)
                 {
-                    uintCont++;
+                    uintTotalCont++;
                     line = reader.ReadLine();
                     i = 0;
                     Publish currentPublish = new Publish();
@@ -97,19 +99,99 @@ namespace IranDoc2Ris
                         i++;
                         if (i == 1)
                         {
-                            currentPublish.title = line;
                             currentPublish.title = line.Replace("اویرایش شده", "");
                         }
 
-                        if (line.Contains("پایان‌نامه "))
+                        if (line.Contains("پایان‌نامه"))
                         {
+                            currentPublish.type = "THES";
                             currentPublish.AddField("TY", " THES"); //#OK
                             currentPublish.AddField("T1", currentPublish.title);
                             string[] tokens = line.Split('.');
-                            string unversity = tokens[1].Replace("دولتی - وزارت علوم، تحقیقات، و فناوری", "");
                             currentPublish.AddField("CY", tokens[1].Replace("دولتی - وزارت علوم، تحقیقات، و فناوری", "")); //#OK Publication Place
                             currentPublish.AddField("Y1", tokens[2]); //#OK its for date of publish
                         }
+                        if (line.Contains("مقاله‌های مجله‌های علمی"))
+                        {
+                            currentPublish.type = "MGZN";
+                            currentPublish.AddField("TY", "MGZN"); //#OK
+                            currentPublish.AddField("T1", currentPublish.title);
+                            //System.Windows.Forms.MessageBox.Show(currentPublish.title);
+                            string[] tokens = line.Split('.');
+                            currentPublish.AddField("PB", tokens[1]); //#OK Publisher
+
+                        }
+                        if (line.Contains("مقاله‌های همایش‌های ایران"))
+                        {
+                            currentPublish.type = "CPAPER";
+                            currentPublish.AddField("TY", "CPAPER"); //#OK
+                            currentPublish.AddField("T1", currentPublish.title);
+                            //System.Windows.Forms.MessageBox.Show(currentPublish.title);
+                            string[] tokens = line.Split('.');
+                            currentPublish.AddField("PB", tokens[1]); //#OK Publication Place
+                            currentPublish.AddField("PP", tokens[2]); //#OK Publication Place
+                            currentPublish.AddField("Y1", tokens[3]); //#OK Publication Place
+                        }
+                        if (line.Contains("طرح پژوهشی"))
+                        {
+                            currentPublish.type = "CLSWK";
+                            currentPublish.AddField("TY", "CLSWK"); //#OK
+                            currentPublish.AddField("T1", currentPublish.title);
+                            //System.Windows.Forms.MessageBox.Show(currentPublish.title);
+                            string[] tokens = line.Split('.');
+                            currentPublish.AddField("PB", tokens[1]); //#OK Publication Place
+                        }
+                        if ((line.Contains("نویسنده") || line.Contains("مترجم") )) //&& currentPublish.type=="MGZN"
+                        {
+                            string[] tokens = line.Split(':');
+                            //System.Windows.Forms.MessageBox.Show(Publish.DeleteKnows(tokens[1]));
+                            string[] token = Publish.DeleteKnows(tokens[1]).Split(new[] { "  " }, StringSplitOptions.None);
+                            foreach (string toke in token)
+                            {
+                                currentPublish.AddField("A1", toke);
+                            }
+                            line = reader.ReadLine();
+                            if (line.Contains("دسترسی")) line = reader.ReadLine();
+                            currentPublish.AddField("N2", line); //abstrac
+                        }
+
+                        if ((line.Contains("پژوهشگر") || line.Contains("مسئول") || line.Contains("نقش")) && currentPublish.type == "CLSWK")
+                        {
+                            string[] tokens = line.Split('|');
+                            foreach (string token in tokens)
+                            {
+                                if (token.Contains("پژوهشگر"))
+                                {
+                                    string[] token2 = token.Split(':');
+                                    token2[1] = Publish.DeleteKnows(token2[1]);
+                                    string[] token3 = token2[1].Split(new[] { "  " }, StringSplitOptions.None);
+                                    foreach(string toke in token3)
+                                    {
+                                        currentPublish.AddField("A1", toke);
+                                    }
+
+                                  
+
+
+                                }
+
+                                if (token.Contains("مسئول"))
+                                {
+
+                                }
+
+                                if (token.Contains("نقش"))
+                                {
+
+                                }
+
+
+                            }
+                            line = reader.ReadLine();
+                            if (line.Contains("دسترسی")) line = reader.ReadLine();
+                            currentPublish.AddField("N2", line); //abstrac
+                        }
+
 
                         if (line.Contains("موضوع"))
                         {
@@ -129,19 +211,20 @@ namespace IranDoc2Ris
                                 string[] token = part.Split(':');
                                 if (token[0].Contains("نویسنده") || token[0].Contains("پدیدآور") || token[0].Contains("دانشجو"))
                                 {
-                                    token[1] = token[1].Replace("دسترسی به فایل تمام‌متن پیشینه‌هایی (رکوردهایی) که نشانه «پی.دی.اف", "");
-                                    token[1] = token[1].Replace("» Pdf_note ندارند، شدنی نیست.", "");
-                                    token[1] = token[1].Replace(".", "");
-                                    token[1] = token[1].Replace(" دریافت فایل", "");
-                                    token[1] = token[1].Replace("Pdf", "");
-                                    currentPublish.AddField("A1", token[1]);
+                                    //token[1] = token[1].Replace("دسترسی به فایل تمام‌متن پیشینه‌هایی (رکوردهایی) که نشانه «پی.دی.اف", "");
+                                    //token[1] = token[1].Replace("» Pdf_note ندارند، شدنی نیست.", "");
+                                    //token[1] = token[1].Replace(".", "");
+                                    //token[1] = token[1].Replace(" دریافت فایل", "");
+                                    //token[1] = token[1].Replace("Pdf", "");
+                                  
+                                    currentPublish.AddField("A1", Publish.DeleteKnows(token[1]));
                                 }
                                 if (token[0].Contains("راهنما")) currentPublish.AddField("A2", token[1]);
                                 if (token[0].Contains("مشاور")) currentPublish.AddField("A3", token[1]);
                             }
                             line = reader.ReadLine();
                             if (line.Contains("دسترسی")) line = reader.ReadLine();
-                            currentPublish.AddField("N2", line); //Titile
+                            currentPublish.AddField("N2", line); //abstrac
                         }
                         if (line.Contains("نمایه"))
                         {
@@ -177,7 +260,7 @@ namespace IranDoc2Ris
                 }
                 writer.Close();
                 w.Close();
-                Console.WriteLine("TotlaExport:{0}", uintCont.ToString());
+                Console.WriteLine("TotlaExport:{0}", uintTotalCont.ToString());
             } while (true);
         }
     }
@@ -188,7 +271,9 @@ namespace IranDoc2Ris
             public string tag;
             public string value;
         }
+        
         public string title;
+        public string type;
         public ArrayList Feilds = new ArrayList();
 
 
@@ -200,6 +285,16 @@ namespace IranDoc2Ris
             newTag.tag = taag;
             newTag.value = vaalue;
             Feilds.Add(newTag);
+        }
+        public static string DeleteKnows(string input)
+        {
+            input=input.Replace("دسترسی به فایل تمام‌متن پیشینه‌هایی (رکوردهایی) که نشانه «پی.دی.اف", "");
+            input = input.Replace("» Pdf_note ندارند، شدنی نیست.", "");
+            input = input.Replace(".", "");
+            input = input.Replace(" دریافت فایل", "");
+            input = input.Replace("Pdf", "");
+            return input;
+
         }
     }
 }
