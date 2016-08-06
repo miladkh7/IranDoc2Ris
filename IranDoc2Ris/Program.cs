@@ -61,7 +61,7 @@ namespace IranDoc2Ris
                         if (answer == "1")
                         {
                             Console.WriteLine("Enter New Name");
-                            savePath = Path.GetDirectoryName(readPath) + Console.ReadLine() + ".ris";
+                            savePath = Path.GetDirectoryName(readPath) + "\\"+ Console.ReadLine() + ".ris";
                         }
                         if (answer == "2") break;
                     }

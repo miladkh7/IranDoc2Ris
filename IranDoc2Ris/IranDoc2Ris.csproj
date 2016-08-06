@@ -92,7 +92,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="IranDoc2Ris_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
@@ -113,16 +112,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Icon1.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Image1.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\5.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="5.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
