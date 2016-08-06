@@ -129,8 +129,10 @@ namespace IranDoc2Ris
                             //System.Windows.Forms.MessageBox.Show(currentPublish.title);
                             string[] tokens = line.Split('.');
                             currentPublish.AddField("PB", tokens[1]); //#OK Publication Place
-                            currentPublish.AddField("PP", tokens[2]); //#OK Publication Place
-                            currentPublish.AddField("Y1", tokens[3]); //#OK Publication Place
+                            //if (tokens.Length < 3) System.Windows.Forms.MessageBox.Show(tokens[1]);
+                            if(tokens.Length>2) currentPublish.AddField("PP", tokens[2]); //#OK Publication Place
+                            if (tokens.Length > 3)  currentPublish.AddField("Y1", tokens[3]);
+
                         }
                         if (line.Contains("طرح پژوهشی"))
                         {
